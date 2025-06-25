@@ -42,6 +42,11 @@ MODEL_LIMITS = {
     "gpt-4-0613": 8_192,
     "gpt-4-1106-preview": 128_000,
     "gpt-4-0125-preview": 128_000,
+    "Qwen/Qwen3-0.6B": 32_768,
+    "Qwen/Qwen3-1.7B": 32_768,
+    "Qwen/Qwen3-4B": 32_768,
+    "Qwen/Qwen3-8B": 32_768,
+    "Qwen/Qwen3-14B": 32_768,
 }
 
 # The cost per token for each model input.
@@ -100,10 +105,17 @@ def calc_cost(model_name, input_tokens, output_tokens):
     Returns:
     float: The cost of the response.
     """
-    cost = (
-        MODEL_COST_PER_INPUT[model_name] * input_tokens
-        + MODEL_COST_PER_OUTPUT[model_name] * output_tokens
-    )
+    try:
+        cost = (
+            MODEL_COST_PER_INPUT[model_name] * input_tokens
+            + MODEL_COST_PER_OUTPUT[model_name] * output_tokens
+        )
+    except KeyError:
+        # If the model is not in the cost dictionary, we assume 0 cost (local models)
+        logger.warning(
+            f"Model {model_name} not found in cost dictionary, assuming 0 cost."
+        )
+        cost = 0.0
     logger.info(
         f"input_tokens={input_tokens}, output_tokens={output_tokens}, cost={cost:.2f}"
     )
@@ -190,7 +202,11 @@ def openai_inference(
     existing_ids (set): A set of ids that have already been processed.
     max_cost (float): The maximum cost to spend on inference.
     """
-    encoding = tiktoken.encoding_for_model(model_name_or_path)
+    try:
+        encoding = tiktoken.encoding_for_model(model_name_or_path)
+    except KeyError:
+        # This might cause issues with some models with small vocabulary... Fingers crossed
+        encoding = tiktoken.get_encoding("cl100k_base")
     test_dataset = test_dataset.filter(
         lambda x: gpt_tokenize(x["text"], encoding) <= MODEL_LIMITS[model_name_or_path],
         desc="Filtering",
@@ -501,7 +517,7 @@ def main(
     }
     if model_name_or_path.startswith("claude"):
         anthropic_inference(**inference_args)
-    elif model_name_or_path.startswith("gpt"):
+    elif model_name_or_path.startswith("gpt") or model_name_or_path in MODEL_LIMITS:
         openai_inference(**inference_args)
     else:
         raise ValueError(f"Invalid model name or path {model_name_or_path}")
