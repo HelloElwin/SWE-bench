@@ -117,6 +117,8 @@ def extract_diff(response):
     """
     if response is None:
         return None
+    if '</think>' in response:
+        response = response[response.rfind('</think>') + len('</think>'):].strip()
     diff_matches = []
     other_matches = []
     pattern = re.compile(r"\<([\w-]+)\>(.*?)\<\/\1\>", re.DOTALL)
