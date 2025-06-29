@@ -42,12 +42,10 @@ MODEL_LIMITS = {
     "gpt-4-0613": 8_192,
     "gpt-4-1106-preview": 128_000,
     "gpt-4-0125-preview": 128_000,
-    "Qwen/Qwen3-0.6B": 32_768,
-    "Qwen/Qwen3-1.7B": 32_768,
-    "Qwen/Qwen3-4B": 32_768,
-    "Qwen/Qwen3-8B": 32_768,  # actually 128K
-    "Qwen/Qwen3-14B": 32_768,  # actually 128K
-    "Qwen/Qwen3-32B": 32_768,  # actually 128K
+    "Qwen/Qwen3-4B": 65_536,  # with YaRN
+    "Qwen/Qwen3-8B": 65_536,  # with YaRN
+    "Qwen/Qwen3-14B": 65_536,  # with YaRN
+    "Qwen/Qwen3-32B": 65_536,  # with YaRN
 }
 
 # The cost per token for each model input.
